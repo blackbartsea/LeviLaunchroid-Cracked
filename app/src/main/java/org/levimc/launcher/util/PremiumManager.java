@@ -14,7 +14,7 @@ public class PremiumManager {
     private static final String PREFS_NAME = "premium_prefs";
     private static final String KEY_CODE = "premium_code";
     private static final String KEY_EXPIRY = "premium_expiry";
-    private static final String CHECK_URL = "example.com/check/";
+    private static final String CHECK_URL = "kempa.alwaysdata.net/check/";
     
     private final SharedPreferences prefs;
     private final OkHttpClient httpClient;
