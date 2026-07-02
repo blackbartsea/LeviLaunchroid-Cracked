@@ -23,6 +23,8 @@ import org.levimc.launcher.R;
 import org.levimc.launcher.databinding.ActivitySplashBinding;
 import org.levimc.launcher.util.LauncherStorage;
 import org.levimc.launcher.util.PersonalizationManager;
+import org.levimc.launcher.util.PremiumManager;
+import org.levimc.launcher.ui.dialogs.PremiumCodeDialog;
 
 import java.util.Locale;
 
@@ -42,6 +44,17 @@ public class SplashActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         syncSystemLocale();
         super.onCreate(savedInstanceState);
+    
+        premiumManager = new PremiumManager(this);
+        if (!premiumManager.isPremiumValid()) {
+            showPremiumCodeDialog();
+            return;
+        }
+    
+        proceedWithSplash();
+    }
+
+    private void proceedWithSplash() {
         binding = ActivitySplashBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
@@ -64,6 +77,21 @@ public class SplashActivity extends BaseActivity {
         warmUpStorageAndVersions();
 
         binding.getRoot().post(this::startSplashSequence);
+    }
+
+    private void showPremiumCodeDialog() {
+        new PremiumCodeDialog(this, new PremiumCodeDialog.Callback() {
+            @Override
+            public void onCodeVerified() {
+                premiumVerified = true;
+                proceedWithSplash();
+            }
+        
+            @Override
+            public void onCancelled() {
+                showPremiumCodeDialog();
+            }
+        }).show();
     }
 
     private void warmUpStorageAndVersions() {
