@@ -83,7 +83,7 @@ public class SplashActivity extends BaseActivity {
         new PremiumCodeDialog(this, new PremiumCodeDialog.Callback() {
             @Override
             public void onCodeVerified() {
-                premiumVerified = true;
+                
                 proceedWithSplash();
             }
         
