@@ -66,7 +66,7 @@ public class PremiumCodeDialog {
         // Handle Get Code button
         btnGetCode.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("https://example.com/get-code"));
+            intent.setData(Uri.parse("https://kempa.alwaysdata.net/get-code"));
             context.startActivity(intent);
         });
         
