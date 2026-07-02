@@ -35,6 +35,7 @@ public class SplashActivity extends BaseActivity {
     protected boolean shouldSkipNavBar() { return true; }
 
     private ActivitySplashBinding binding;
+    private PremiumManager premiumManager;
     private boolean navigated = false;
     private ValueAnimator orbitAnimator;
     private ObjectAnimator progressAnimator;
