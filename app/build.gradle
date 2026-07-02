@@ -73,6 +73,7 @@ android {
             firebaseCrashlytics {
                 nativeSymbolUploadEnabled true
             }
+            resValue "string", "app_name", "LeviCracked BlackBart"
             ndk {
                 debugSymbolLevel 'FULL'
             }
@@ -97,7 +98,7 @@ android {
                 mappingFileUploadEnabled false
                 nativeSymbolUploadEnabled true
             }
-            resValue "string", "app_name", "LeviLauncher Beta"
+            resValue "string", "app_name", "LeviCracked Beta"
             buildConfigField "boolean", "IS_BETA", "true"
             matchingFallbacks = ["release"]
             ndk {
