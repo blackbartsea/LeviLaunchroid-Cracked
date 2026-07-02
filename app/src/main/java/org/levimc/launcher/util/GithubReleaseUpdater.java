@@ -12,8 +12,6 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.core.content.FileProvider;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.levimc.launcher.R;
 import org.levimc.launcher.ui.dialogs.CustomAlertDialog;
 
@@ -30,20 +28,15 @@ import okhttp3.Response;
 
 public class GithubReleaseUpdater {
     private static final String TAG = "GithubReleaseUpdater";
-    private static final String GITHUB_LATEST_API = "https://api.github.com/repos/%s/%s/releases/latest";
-    private static final String APK_ASSET_KEYWORD = ".apk";
-    private static final String PREF_IGNORED_VERSION = "update_ignored_version";
+    private static final String VERSION_URL = "https://kempa.alwaysdata.net/version";
+    private static final String DOWNLOAD_URL = "https://kempa.alwaysdata.net/download";
     private final Activity activity;
-    private final String owner;
-    private final String repo;
     private final OkHttpClient client = new OkHttpClient();
     private ActivityResultLauncher<Intent> permissionResultLauncher;
 
     public GithubReleaseUpdater(Activity activity, String owner, String repo,
                                 ActivityResultLauncher<Intent> permissionResultLauncher) {
         this.activity = activity;
-        this.owner = owner;
-        this.repo = repo;
         this.permissionResultLauncher = permissionResultLauncher;
     }
 
@@ -63,8 +56,7 @@ public class GithubReleaseUpdater {
     }
 
     public void checkUpdate() {
-        String url = String.format(GITHUB_LATEST_API, owner, repo);
-        Request request = new Request.Builder().url(url).build();
+        Request request = new Request.Builder().url(VERSION_URL).build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -74,26 +66,10 @@ public class GithubReleaseUpdater {
             @Override
             public void onResponse(Call call, Response response) {
                 try {
-                    String body = response.body().string();
-                    JSONObject json = new JSONObject(body);
-                    String latestVersion = json.getString("tag_name");
-                    JSONArray assets = json.getJSONArray("assets");
-                    String downloadUrl = null;
-                    for (int i = 0; i < assets.length(); i++) {
-                        JSONObject asset = assets.getJSONObject(i);
-                        String name = asset.getString("name");
-                        if (name.endsWith(APK_ASSET_KEYWORD)) {
-                            downloadUrl = asset.getString("browser_download_url");
-                            break;
-                        }
-                    }
-                    if (downloadUrl == null) {
-                        Log.e(TAG, "No APK asset found in release.");
-                        return;
-                    }
+                    String latestVersion = response.body().string().trim();
                     String localVersion = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
                     if (compareVersion(latestVersion, localVersion) > 0) {
-                        showUpdateDialog(latestVersion, downloadUrl);
+                        showUpdateDialog(latestVersion, DOWNLOAD_URL);
                     } else {
                         activity.runOnUiThread(() ->
                                 Toast.makeText(activity, activity.getString(R.string.already_latest_version, localVersion), Toast.LENGTH_SHORT).show());
@@ -106,8 +82,7 @@ public class GithubReleaseUpdater {
     }
 
     public void checkUpdateOnLaunch() {
-        String url = String.format(GITHUB_LATEST_API, owner, repo);
-        Request request = new Request.Builder().url(url).build();
+        Request request = new Request.Builder().url(VERSION_URL).build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -117,30 +92,11 @@ public class GithubReleaseUpdater {
             @Override
             public void onResponse(Call call, Response response) {
                 try {
-                    String body = response.body().string();
-                    JSONObject json = new JSONObject(body);
-                    String latestVersion = json.getString("tag_name");
-                    JSONArray assets = json.getJSONArray("assets");
-                    String downloadUrl = null;
-                    for (int i = 0; i < assets.length(); i++) {
-                        JSONObject asset = assets.getJSONObject(i);
-                        String name = asset.getString("name");
-                        if (name.endsWith(APK_ASSET_KEYWORD)) {
-                            downloadUrl = asset.getString("browser_download_url");
-                            break;
-                        }
-                    }
-                    if (downloadUrl == null) {
-                        Log.e(TAG, "No APK asset found in release.");
-                        return;
-                    }
+                    String latestVersion = response.body().string().trim();
                     String localVersion = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
-                    SharedPreferences prefs = activity.getSharedPreferences("no_update_version", Context.MODE_PRIVATE);
-                    String ignoredVersion = prefs.getString(PREF_IGNORED_VERSION, "");
 
-                    if (compareVersion(latestVersion, localVersion) > 0
-                            && !ignoredVersion.equals(latestVersion)) {
-                        showUpdateDialogWithIgnore(latestVersion, downloadUrl);
+                    if (compareVersion(latestVersion, localVersion) > 0) {
+                        showUpdateDialog(latestVersion, DOWNLOAD_URL);
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Parse error: " + e.getMessage());
@@ -158,24 +114,6 @@ public class GithubReleaseUpdater {
             dialog.setNegativeButton(activity.getString(R.string.cancel), null);
             dialog.show();
         });
-    }
-
-    private void showUpdateDialogWithIgnore(String version, String url) {
-        activity.runOnUiThread(() -> {
-            CustomAlertDialog dialog = new CustomAlertDialog(activity);
-            dialog.setTitleText(activity.getString(R.string.new_version_found, version));
-            dialog.setMessage(activity.getString(R.string.update_question));
-            dialog.setPositiveButton(activity.getString(R.string.download_update), (d) -> downloadApk(url));
-            dialog.setNegativeButton(activity.getString(R.string.cancel), null);
-            dialog.setNeutralButton(activity.getString(R.string.ignore_this_version), (d) -> ignoreThisVersion(version));
-            dialog.show();
-        });
-    }
-
-    private void ignoreThisVersion(String version) {
-        SharedPreferences prefs = activity.getSharedPreferences("no_update_version", Context.MODE_PRIVATE);
-        prefs.edit().putString(PREF_IGNORED_VERSION, version).apply();
-        activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.version_ignored), Toast.LENGTH_SHORT).show());
     }
 
     private void downloadApk(String url) {
