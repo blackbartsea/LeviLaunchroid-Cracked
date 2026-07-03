@@ -110,7 +110,7 @@ public class PremiumCodeDialog {
                 
                 if ("ok".equals(result)) {
                     premiumManager.savePremiumCode(code);
-                    tvStatus.setText("✓ You got 6 hours of time! Thanks to BlackBart.");
+                    tvStatus.setText("✓ You got 3 days of time! Thanks to BlackBart.");
                     tvStatus.setTextColor(0xFF4CAF50);
                     tvStatus.setVisibility(View.VISIBLE);
                     
