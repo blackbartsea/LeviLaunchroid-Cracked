@@ -72,7 +72,7 @@ public class PremiumManager {
      * Save premium code and set 6-hour expiry
      */
     public void savePremiumCode(@NonNull String code) {
-        long expiryTime = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(6);
+        long expiryTime = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(72);
         prefs.edit()
             .putString(KEY_CODE, code)
             .putLong(KEY_EXPIRY, expiryTime)
